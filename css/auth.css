@@ -3,7 +3,7 @@
 :root {
   --red: #e53935;
   --red-dark: #c62828;
-  --blue: #3b5bdb;
+  --blue: #4361d1;
   --text: #1a1a2e;
   --muted: #6b7280;
   --border: #e0e0e0;
@@ -58,7 +58,7 @@ body {
 .brand-panel {
   width: 230px;
   flex-shrink: 0;
-  background: linear-gradient(145deg, #1a1f6e 0%, #3b5bdb 100%);
+  background: var(--blue);
   display: flex;
   flex-direction: column;
   align-items: center;

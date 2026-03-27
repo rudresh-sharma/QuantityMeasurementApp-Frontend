@@ -1,5 +1,5 @@
 /**
- * auth.js
+ * a uth.js
  * Handles login, signup, tab switching, password toggle, and validation.
  */
 

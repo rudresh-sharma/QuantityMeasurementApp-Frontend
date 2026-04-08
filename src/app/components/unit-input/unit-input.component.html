@@ -1,0 +1,22 @@
+<div class="unit-input">
+  <label class="unit-input__label">{{ label }}</label>
+  <div
+    class="unit-input__row"
+    [class.unit-input__row--unit-only]="hideValueField"
+    [class.unit-input__row--stacked]="stackValueAndUnit">
+    <input
+      *ngIf="!hideValueField"
+      type="number"
+      class="unit-input__field"
+      [placeholder]="valuePlaceholder"
+      [ngModel]="value"
+      (ngModelChange)="emitValue($event)" />
+    <select
+      class="unit-input__select"
+      [ngModel]="selectedUnit"
+      (ngModelChange)="unitChange.emit($event)">
+      <option value="" disabled>{{ unitPlaceholder }}</option>
+      <option *ngFor="let unit of units" [value]="unit.shortLabel">{{ unit.label }}</option>
+    </select>
+  </div>
+</div>

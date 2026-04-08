@@ -1,0 +1,43 @@
+services:
+  frontend:
+    image: crazydev7/quantity-measurement-frontend:latest
+    container_name: quantity-measurement-frontend
+    ports:
+      - "4200:80"
+    environment:
+      API_UPSTREAM: http://api-gateway:8080
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+
+  admin-server:
+    image: crazydev7/admin-server:latest
+    container_name: admin-server
+    ports:
+      - "8761:8761"
+    restart: unless-stopped
+
+  authentication-service:
+    image: crazydev7/authentication-service:latest
+    container_name: authentication-service
+    depends_on:
+      - admin-server
+    restart: unless-stopped
+
+  quantity-measurement-service:
+    image: crazydev7/quantity-measurement-service:latest
+    container_name: quantity-measurement-service
+    depends_on:
+      - admin-server
+    restart: unless-stopped
+
+  api-gateway:
+    image: crazydev7/api-gateway:latest
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - admin-server
+      - authentication-service
+      - quantity-measurement-service
+    restart: unless-stopped

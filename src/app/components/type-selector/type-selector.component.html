@@ -1,0 +1,31 @@
+<section class="panel">
+  <p class="panel__eyebrow">CHOOSE TYPE</p>
+  <div class="type-grid">
+    <button
+      *ngFor="let card of cards"
+      type="button"
+      class="type-card"
+      [class.type-card--active]="card.type === selectedType"
+      [class.type-card--weight]="card.type === 'weight'"
+      [style.--accent]="card.accent"
+      (click)="typeChange.emit(card.type)">
+      <span class="type-card__icon" [ngSwitch]="card.icon" aria-hidden="true">
+        <img *ngSwitchCase="'length'" class="type-card__icon-image" src="icons/measure_7260357.png" alt="" />
+        <span *ngSwitchCase="'weight'" class="type-card__emoji">&#x2696;&#xFE0F;</span>
+        <svg *ngSwitchCase="'temperature'" viewBox="0 0 48 48">
+          <path d="M24 13v15" />
+          <path d="M24 28a4.5 4.5 0 1 0 4.5 4.5A4.5 4.5 0 0 0 24 28Z" />
+          <path d="M29 17h4" />
+          <path d="M29 21h3" />
+          <path d="M29 25h4" />
+        </svg>
+        <svg *ngSwitchDefault viewBox="0 0 48 48">
+          <path d="M18 14h12l2 17H16Z" />
+          <path d="M19 14l1.5-3h7L29 14" />
+          <path d="M18 24c2 1.5 4 1.5 6 0s4-1.5 6 0" />
+        </svg>
+      </span>
+      <span class="type-card__label">{{ card.label }}</span>
+    </button>
+  </div>
+</section>

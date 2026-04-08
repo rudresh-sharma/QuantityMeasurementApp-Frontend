@@ -1,0 +1,65 @@
+:host {
+  display: block;
+}
+
+.panel {
+  background: #fff;
+  border-radius: 36px;
+  padding: 24px 28px;
+  box-shadow: 0 24px 56px rgba(65, 93, 191, 0.12);
+  width: min(900px, 100%);
+  margin: 0 auto;
+}
+
+.panel--compact {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.result-banner {
+  border-left: 6px solid #3f5be1;
+  background: #eef3ff;
+  border-radius: 18px;
+  padding: 24px 32px;
+}
+
+.result-banner__message {
+  margin: 0;
+  color: #3859dc;
+  font-size: 1.1rem;
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+#resultText {
+  color: #3b5bdb;
+}
+
+.result-banner__value {
+  margin: 10px 0 0;
+  color: #667594;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .panel {
+    margin: 0;
+    border: 0;
+    border-radius: 28px;
+    background: #ffffff;
+    padding: 18px 16px;
+  }
+
+  .result-banner {
+    padding: 20px 22px;
+  }
+
+  .result-banner__message {
+    font-size: 14px;
+    line-height: 1.35;
+    font-weight: 700;
+  }
+}

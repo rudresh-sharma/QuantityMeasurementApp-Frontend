@@ -1,0 +1,227 @@
+<ng-container *ngIf="viewModel$ | async as vm">
+  <main class="app-shell">
+    <section class="auth-page" *ngIf="!vm.authenticated; else dashboard">
+      <div class="auth-card">
+        <aside class="brand-panel">
+          <div class="brand-icon">
+            <span class="brand-icon__body"></span>
+            <span class="brand-icon__base"></span>
+          </div>
+          <p class="brand-panel__eyebrow">QUANTITY</p>
+          <h1 class="brand-panel__title">MEASUREMENT</h1>
+          <p class="brand-panel__subtitle">Measure, Convert &amp; Compare</p>
+          <ul class="brand-panel__list">
+            <li>Length &amp; Weight</li>
+            <li>Temperature</li>
+            <li>Volume</li>
+          </ul>
+        </aside>
+
+        <section class="form-panel">
+          <div class="auth-tabs">
+            <button type="button" class="auth-tabs__button" [class.auth-tabs__button--active]="vm.activeAuthTab === 'login'" (click)="setAuthTab('login')">LOGIN</button>
+            <button type="button" class="auth-tabs__button" [class.auth-tabs__button--active]="vm.activeAuthTab === 'signup'" (click)="setAuthTab('signup')">SIGNUP</button>
+          </div>
+          <div class="auth-divider"></div>
+
+          <form class="auth-form" *ngIf="vm.activeAuthTab === 'login'; else signupBlock" [formGroup]="loginForm" (ngSubmit)="login()">
+            <label class="field">
+              <span>Email Id</span>
+              <input #loginEmail type="email" formControlName="email" (keydown.enter)="focusNextField($event, loginPassword)" />
+            </label>
+            <p class="field-error" *ngIf="emailErrorMessage(loginForm.controls.email) as errorMessage">{{ errorMessage }}</p>
+
+            <label class="field">
+              <span>Password</span>
+              <div class="field__password">
+                <input #loginPassword [type]="showLoginPassword ? 'text' : 'password'" formControlName="password" />
+                <button type="button" class="field__eye" [class.field__eye--off]="!showLoginPassword" (click)="togglePasswordVisibility('login')" [attr.aria-label]="showLoginPassword ? 'Hide password' : 'Show password'">
+                  <svg class="field__eye-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M2 12C4.7 7.8 8 5.7 12 5.7C16 5.7 19.3 7.8 22 12C19.3 16.2 16 18.3 12 18.3C8 18.3 4.7 16.2 2 12Z"></path>
+                    <circle cx="12" cy="12" r="3.1"></circle>
+                    <line x1="5" y1="19" x2="19" y2="5"></line>
+                  </svg>
+                </button>
+              </div>
+            </label>
+            <p class="field-error" *ngIf="passwordErrorMessage(loginForm.controls.password) as errorMessage">{{ errorMessage }}</p>
+            <p class="auth-alert" *ngIf="loginErrorMessage">{{ loginErrorMessage }}</p>
+
+            <div class="auth-form__actions">
+              <button class="primary-button" type="submit">Login</button>
+              <button class="google-button" type="button" (click)="signInWithGoogle()">
+                <svg class="google-button__icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#EA4335" d="M12.24 10.285v3.821h5.445c-.234 1.23-.938 2.273-2.001 2.977l3.234 2.509c1.885-1.737 2.968-4.292 2.968-7.307 0-.709-.064-1.391-.182-2.045h-9.465z" />
+                  <path fill="#4285F4" d="M12 22c2.7 0 4.964-.896 6.618-2.427l-3.234-2.509c-.896.6-2.041.955-3.384.955-2.604 0-4.809-1.76-5.596-4.126H3.06v2.594A9.997 9.997 0 0 0 12 22z" />
+                  <path fill="#FBBC05" d="M6.404 13.893A5.996 5.996 0 0 1 6.091 12c0-.657.113-1.296.313-1.893V7.513H3.06A9.997 9.997 0 0 0 2 12c0 1.611.386 3.135 1.06 4.487l3.344-2.594z" />
+                  <path fill="#34A853" d="M12 5.981c1.468 0 2.786.505 3.823 1.496l2.864-2.864C16.959 2.999 14.695 2 12 2A9.997 9.997 0 0 0 3.06 7.513l3.344 2.594C7.191 7.741 9.396 5.981 12 5.981z" />
+                </svg>
+                <span>Continue with Google</span>
+              </button>
+              <p class="switch-copy">Don't have an account? <button type="button" (click)="setAuthTab('signup')">Sign Up</button></p>
+            </div>
+          </form>
+
+          <ng-template #signupBlock>
+            <form class="auth-form" [formGroup]="signupForm" (ngSubmit)="signup()">
+              <div class="auth-alert auth-alert--top" *ngIf="(signupErrorMessage || signupForm.errors?.['submit']) && !signupForm.controls.email.errors?.['alreadyRegistered']" role="alert" aria-live="polite">
+                <span class="auth-alert__icon" aria-hidden="true">!</span>
+                <span class="auth-alert__text">{{ signupErrorMessage || signupForm.errors?.['submit'] }}</span>
+              </div>
+
+              <label class="field">
+                <span>Full Name</span>
+                <input #signupFullName type="text" formControlName="fullName" placeholder="Enter your full name" (keydown.enter)="focusNextField($event, signupEmail)" />
+              </label>
+              <p class="field-error" *ngIf="fullNameErrorMessage(signupForm.controls.fullName) as errorMessage">{{ errorMessage }}</p>
+
+              <label class="field">
+                <span>Email Id</span>
+                <input #signupEmail type="email" formControlName="email" placeholder="Enter your email" (keydown.enter)="focusNextField($event, signupPassword)" />
+              </label>
+              <p class="field-error" *ngIf="emailErrorMessage(signupForm.controls.email) as errorMessage">{{ errorMessage }}</p>
+
+              <label class="field">
+                <span>Password</span>
+                <div class="field__password">
+                  <input #signupPassword [type]="showSignupPassword ? 'text' : 'password'" formControlName="password" placeholder="Create a password" (keydown.enter)="focusNextField($event, signupMobileNumber)" />
+                  <button type="button" class="field__eye" [class.field__eye--off]="!showSignupPassword" (click)="togglePasswordVisibility('signup')" [attr.aria-label]="showSignupPassword ? 'Hide password' : 'Show password'">
+                    <svg class="field__eye-icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M2 12C4.7 7.8 8 5.7 12 5.7C16 5.7 19.3 7.8 22 12C19.3 16.2 16 18.3 12 18.3C8 18.3 4.7 16.2 2 12Z"></path>
+                      <circle cx="12" cy="12" r="3.1"></circle>
+                      <line x1="5" y1="19" x2="19" y2="5"></line>
+                    </svg>
+                  </button>
+                </div>
+              </label>
+              <p class="field-error" *ngIf="passwordErrorMessage(signupForm.controls.password) as errorMessage">{{ errorMessage }}</p>
+
+              <label class="field">
+                <span>Mobile Number</span>
+                <input #signupMobileNumber type="text" formControlName="mobileNumber" placeholder="Enter mobile number" />
+              </label>
+              <p class="field-error" *ngIf="mobileNumberErrorMessage(signupForm.controls.mobileNumber) as errorMessage">{{ errorMessage }}</p>
+              <div class="auth-form__actions">
+                <button class="primary-button" type="submit">Create Account</button>
+                <button class="google-button" type="button" (click)="signInWithGoogle()">
+                  <svg class="google-button__icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="#EA4335" d="M12.24 10.285v3.821h5.445c-.234 1.23-.938 2.273-2.001 2.977l3.234 2.509c1.885-1.737 2.968-4.292 2.968-7.307 0-.709-.064-1.391-.182-2.045h-9.465z" />
+                    <path fill="#4285F4" d="M12 22c2.7 0 4.964-.896 6.618-2.427l-3.234-2.509c-.896.6-2.041.955-3.384.955-2.604 0-4.809-1.76-5.596-4.126H3.06v2.594A9.997 9.997 0 0 0 12 22z" />
+                    <path fill="#FBBC05" d="M6.404 13.893A5.996 5.996 0 0 1 6.091 12c0-.657.113-1.296.313-1.893V7.513H3.06A9.997 9.997 0 0 0 2 12c0 1.611.386 3.135 1.06 4.487l3.344-2.594z" />
+                    <path fill="#34A853" d="M12 5.981c1.468 0 2.786.505 3.823 1.496l2.864-2.864C16.959 2.999 14.695 2 12 2A9.997 9.997 0 0 0 3.06 7.513l3.344 2.594C7.191 7.741 9.396 5.981 12 5.981z" />
+                  </svg>
+                  <span>Continue with Google</span>
+                </button>
+                <p class="switch-copy">Already have an account? <button type="button" (click)="setAuthTab('login')">Login</button></p>
+              </div>
+            </form>
+          </ng-template>
+        </section>
+      </div>
+    </section>
+
+    <ng-template #dashboard>
+      <section class="dashboard">
+        <header class="topbar">
+          <div class="topbar__brand">
+            <span class="topbar__brand-text">QUANTITY MEASUREMENT</span>
+          </div>
+          <div class="topbar__actions">
+            <span class="topbar__greeting">Hi, {{ currentUserName }} 👋</span>
+            <button type="button" class="logout-button" (click)="logout()">Logout</button>
+          </div>
+        </header>
+
+        <div class="dashboard__content">
+          <app-type-selector [selectedType]="vm.selectedType" (typeChange)="setType($event)" />
+          <app-action-tabs [selectedAction]="vm.selectedAction" (actionChange)="setAction($event)" />
+
+          <section
+            class="panel panel--calculator"
+            [class.panel--conversion]="action === 'conversion'"
+            style="width: min(965.5px, 100%); margin: 0 auto; padding: 24px 28px"
+            *ngIf="vm.selectedType && vm.selectedAction as action">
+            <p class="panel__eyebrow" *ngIf="action === 'arithmetic'"></p>
+
+            <div class="calculator-layout" style="grid-template-columns: repeat(2, minmax(0, 1fr))" *ngIf="action === 'comparison'; else nonComparisonLayout">
+              <app-unit-input
+                label="VALUE A"
+                [value]="calculatorForm.value.leftValue ?? null"
+                [selectedUnit]="calculatorForm.value.leftUnit ?? ''"
+                [units]="currentUnits(vm.selectedType)"
+                [stackValueAndUnit]="true"
+                valuePlaceholder="Enter value"
+                unitPlaceholder="Select unit"
+                (valueChange)="updateLeftValue($event)"
+                (unitChange)="updateLeftUnit($event)" />
+
+              <app-unit-input
+                label="VALUE B"
+                [value]="calculatorForm.value.rightValue ?? null"
+                [selectedUnit]="calculatorForm.value.rightUnit ?? ''"
+                [units]="currentUnits(vm.selectedType)"
+                [stackValueAndUnit]="true"
+                valuePlaceholder="Enter value"
+                unitPlaceholder="Select unit"
+                (valueChange)="updateRightValue($event)"
+                (unitChange)="updateRightUnit($event)" />
+            </div>
+
+            <ng-template #nonComparisonLayout>
+              <div class="calculator-layout" [class.calculator-layout--stacked]="action === 'conversion'">
+                <app-unit-input
+                  [label]="action === 'arithmetic' ? 'VALUE A' : 'VALUE A'"
+                  [value]="calculatorForm.value.leftValue ?? null"
+                  [selectedUnit]="calculatorForm.value.leftUnit ?? ''"
+                  [units]="currentUnits(vm.selectedType)"
+                  [stackValueAndUnit]="action !== 'arithmetic'"
+                  valuePlaceholder="Enter value"
+                  unitPlaceholder="Select unit"
+                  (valueChange)="updateLeftValue($event)"
+                  (unitChange)="updateLeftUnit($event)" />
+
+                <app-operator
+                  *ngIf="action === 'arithmetic'"
+                  [selectedOperator]="calculatorForm.value.operator ?? '+'"
+                  (operatorChange)="updateOperator($event)" />
+
+                <app-unit-input
+                  [label]="action === 'arithmetic' ? 'VALUE B' : 'VALUE B'"
+                  [value]="calculatorForm.value.rightValue ?? null"
+                  [selectedUnit]="calculatorForm.value.rightUnit ?? ''"
+                  [units]="currentUnits(vm.selectedType)"
+                  [hideValueField]="action === 'conversion'"
+                  [stackValueAndUnit]="false"
+                  valuePlaceholder="Enter value"
+                  unitPlaceholder="Select unit"
+                  (valueChange)="updateRightValue($event)"
+                  (unitChange)="updateRightUnit($event)" />
+              </div>
+
+            </ng-template>
+          </section>
+
+          <app-result
+            *ngIf="true"
+            [value]="resultValue"
+            [unit]="resultUnit"
+            [message]="resultMessage" />
+        </div>
+
+        <app-history
+          [records]="vm.history"
+          [open]="historyOpen"
+          (closePanel)="closeHistory()"
+          (clearHistory)="clearHistory()" />
+
+        <button class="floating-reset" type="button" (click)="openHistory()" aria-label="Open history">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 6.25a5.75 5.75 0 1 1-5.29 8.01" />
+            <path d="M12 8.85v3.35l2.5 1.48" />
+            <path d="M7.1 5.7v3.2H3.9" />
+          </svg>
+        </button>
+      </section>
+    </ng-template>
+  </main>
+</ng-container>

@@ -1,0 +1,34 @@
+<div class="history-modal" *ngIf="open" (click)="closePanel.emit()">
+  <section class="history-sheet" (click)="$event.stopPropagation()">
+    <header class="history-sheet__header">
+      <div>
+        <h2 class="history-sheet__title">History</h2>
+        <p class="history-sheet__subtitle">Recent calculations</p>
+      </div>
+
+      <button class="history-sheet__close" type="button" (click)="closePanel.emit()" aria-label="Close history">
+        &times;
+      </button>
+    </header>
+
+    <div class="history-sheet__list" *ngIf="records.length; else emptyState">
+      <article class="history-card" *ngFor="let record of records">
+        <div class="history-card__top">
+          <span class="history-card__badge">{{ record.type | uppercase }} &bull; {{ formatAction(record.action) | uppercase }}</span>
+          <time class="history-card__time">{{ record.createdAt | date: 'dd MMM, HH:mm' }}</time>
+        </div>
+        <p class="history-card__expression">{{ record.expression }}</p>
+      </article>
+    </div>
+
+    <ng-template #emptyState>
+      <div class="history-sheet__empty">
+        No calculations yet
+      </div>
+    </ng-template>
+
+    <div class="history-sheet__footer" *ngIf="records.length">
+      <button class="history-sheet__clear" type="button" (click)="clearHistory.emit()">Clear history</button>
+    </div>
+  </section>
+</div>

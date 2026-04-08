@@ -1,0 +1,18 @@
+<div class="operator-picker">
+  <button type="button" class="operator-picker__trigger" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen">
+    <span class="operator-picker__symbol">{{ selectedOption.symbol }}</span>
+    <span class="operator-picker__caret">▲</span>
+  </button>
+
+  <div class="operator-picker__menu" *ngIf="menuOpen">
+    <button
+      *ngFor="let operator of operators"
+      type="button"
+      class="operator-picker__option"
+      [class.operator-picker__option--active]="operator.value === selectedOperator"
+      (click)="chooseOperator(operator.value)">
+      <span class="operator-picker__icon">{{ operator.symbol }}</span>
+      <span class="operator-picker__label">{{ operator.label }}</span>
+    </button>
+  </div>
+</div>

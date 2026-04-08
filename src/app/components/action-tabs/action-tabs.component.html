@@ -1,0 +1,13 @@
+<section class="panel">
+  <p class="panel__eyebrow">CHOOSE ACTION</p>
+  <div class="action-tabs" id="actionTabs">
+    <button
+      *ngFor="let action of actions"
+      type="button"
+      class="action-tabs__button"
+      [class.action-tabs__button--active]="action.key === selectedAction"
+      (click)="actionChange.emit(action.key)">
+      {{ action.label }}
+    </button>
+  </div>
+</section>

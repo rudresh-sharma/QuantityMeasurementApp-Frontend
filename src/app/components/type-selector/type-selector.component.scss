@@ -1,0 +1,133 @@
+.panel {
+  background: #fff;
+  border-radius: 36px;
+  padding: 24px 28px;
+  box-shadow: 0 24px 56px rgba(65, 93, 191, 0.12);
+  width: min(900px, 100%);
+  margin: 0 auto;
+}
+
+.panel__eyebrow {
+  margin: 0 0 12px;
+  color: #6b7280;
+  letter-spacing: 0.2em;
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 800;
+}
+
+.type-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.type-card {
+  min-height: 88px;
+  padding: 14px 10px 12px;
+  border: 1px solid #dce7ff;
+  border-radius: 24px;
+  background: #fafbff;
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  color: #6e788c;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.type-card--weight {
+  padding-top: 18px;
+}
+
+.type-card:hover {
+  transform: translateY(-1px);
+}
+
+.type-card--active {
+  border-color: #4761d8;
+  box-shadow: inset 0 0 0 1px #4761d8;
+  color: #365add;
+}
+
+.type-card__icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: var(--accent);
+}
+
+.type-card__icon svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.type-card__icon-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.type-card__emoji {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.type-card__label {
+  font-size: 0.88rem;
+  line-height: 1.1;
+  font-weight: 700;
+  text-align: center;
+}
+
+@media (max-width: 980px) {
+  .type-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .panel {
+    margin: 0;
+    border: 0;
+    border-radius: 28px;
+    background: #ffffff;
+    padding: 18px 16px;
+  }
+
+  .type-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .type-card {
+    min-height: 103px;
+    border-radius: 20px;
+    gap: 8px;
+    padding: 18px 12px 14px;
+  }
+
+  .type-card__icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .type-card__label {
+    font-size: 0.82rem;
+    text-align: center;
+  }
+
+  .type-card__emoji {
+    font-size: 1.5rem;
+  }
+}

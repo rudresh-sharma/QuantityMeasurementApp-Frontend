@@ -65,6 +65,10 @@
   color: #6d7689;
 }
 
+.unit-input__field--error {
+  border-bottom-color: #d64545;
+}
+
 .unit-input__field:focus,
 .unit-input__select:focus {
   border-color: #7fa3ff;
@@ -73,6 +77,18 @@
 
 .unit-input__field:focus {
   box-shadow: none;
+}
+
+.unit-input__field--error:focus {
+  border-bottom-color: #d64545;
+}
+
+.unit-input__error {
+  margin: -4px 0 0;
+  color: #b42318;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  font-weight: 600;
 }
 
 :host-context(.panel--conversion) .unit-input {

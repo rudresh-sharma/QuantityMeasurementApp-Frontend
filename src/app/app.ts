@@ -1,6 +1,7 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { RouterOutlet } from '@angular/router';
 import { combineLatest } from 'rxjs';
 import { ActionTabsComponent } from './components/action-tabs/action-tabs.component';
 import { HistoryComponent } from './components/history/history.component';
@@ -22,6 +23,7 @@ import { environment } from '../environments/environment';
     CommonModule,
     AsyncPipe,
     ReactiveFormsModule,
+    RouterOutlet,
     TypeSelectorComponent,
     ActionTabsComponent,
     UnitInputComponent,
@@ -100,12 +102,33 @@ export class App {
   resultUnit = '';
   resultMessage = 'Choose type and action to begin';
   currentUserName = 'User';
+  currentUserFullName = '';
+  currentUserEmail = '';
+  currentUserMobileNumber = '';
+  currentUserPicture = '';
+  currentUserRole = 'User';
+  currentAuthProvider = '';
   showLoginPassword = false;
   showSignupPassword = false;
   authErrorMessage = '';
   signupErrorMessage = '';
   loginErrorMessage = '';
   historyOpen = false;
+  profileMenuOpen = false;
+
+  get currentUserInitials(): string {
+    const parts = this.currentUserName
+      .split(' ')
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .slice(0, 2);
+
+    return (parts.map((part) => part.charAt(0)).join('') || 'U').toUpperCase();
+  }
+
+  get isOAuthCallbackRoute(): boolean {
+    return window.location.pathname === environment.googleSuccessPath;
+  }
 
   constructor() {
     this.signupForm.controls.email.valueChanges.subscribe(() => {
@@ -116,14 +139,23 @@ export class App {
   readonly viewModel$ = combineLatest({
     selectedType: this.measurementService.selectedType$,
     selectedAction: this.measurementService.selectedAction$,
-    authenticated: this.measurementService.authenticated$,
+    authenticated: this.authService.isAuthenticated$,
     activeAuthTab: this.measurementService.activeAuthTab$,
     history: this.historyService.history$
   });
 
   ngOnInit(): void {
-    this.restoreSession();
-    this.handleOAuthCallback();
+    this.authService.user$.subscribe((user) => {
+      this.currentUserName = user
+        ? this.resolveDisplayName(user.fullName, user.email)
+        : 'User';
+      this.currentUserFullName = user?.fullName?.trim() ?? '';
+      this.currentUserEmail = user?.email ?? '';
+      this.currentUserMobileNumber = user?.mobileNumber ?? '';
+      this.currentUserPicture = user?.pictureUrl ?? '';
+      this.currentUserRole = this.formatLabel((user?.role ?? 'user').toLowerCase());
+      this.currentAuthProvider = user?.authProvider ? this.formatLabel(user.authProvider.toLowerCase()) : '';
+    });
     this.initializeDefaultCalculatorState();
   }
 
@@ -203,7 +235,7 @@ export class App {
 
   logout(): void {
     this.authService.clearSession();
-    this.measurementService.setAuthenticated(false);
+    this.profileMenuOpen = false;
     this.initializeDefaultCalculatorState();
     this.authErrorMessage = '';
     this.signupErrorMessage = '';
@@ -217,14 +249,21 @@ export class App {
   }
 
   setType(type: MeasurementType): void {
+    if (this.measurementService.selectedType !== type) {
+      this.resetCalculatorInputs();
+    }
+
     this.measurementService.setType(type);
-    this.calculatorForm.patchValue({ leftUnit: '', rightUnit: '' });
     this.updateIdleMessage(this.measurementService.selectedAction);
     this.triggerAutoComparison();
     this.triggerAutoConversion();
   }
 
   setAction(action: ActionType): void {
+    if (this.measurementService.selectedAction !== action) {
+      this.resetCalculatorInputs();
+    }
+
     this.measurementService.setAction(action);
     this.updateIdleMessage(action);
     this.triggerAutoComparison();
@@ -411,9 +450,23 @@ export class App {
     this.historyService.clear();
   }
 
+  toggleProfileMenu(): void {
+    this.profileMenuOpen = !this.profileMenuOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  handleDocumentClick(event: MouseEvent): void {
+    if (!this.profileMenuOpen) {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    if (!target?.closest('.profile-menu')) {
+      this.profileMenuOpen = false;
+    }
+  }
+
   private completeAuthentication(response: AuthResponse): void {
-    this.authService.persistSession(response);
-    this.measurementService.setAuthenticated(true);
     this.currentUserName = this.resolveDisplayName(response.user.fullName, response.user.email);
     this.initializeDefaultCalculatorState();
     this.authErrorMessage = '';
@@ -421,47 +474,6 @@ export class App {
     this.loginErrorMessage = '';
     this.signupForm.setErrors(null);
     this.loginForm.setErrors(null);
-  }
-
-  private restoreSession(): void {
-    const session = this.authService.readSession();
-    if (session?.token) {
-      this.measurementService.setAuthenticated(true);
-      this.currentUserName = this.resolveDisplayName(session.user.fullName, session.user.email);
-    }
-  }
-
-  private handleOAuthCallback(): void {
-    const currentUrl = new URL(window.location.href);
-
-    if (currentUrl.pathname !== environment.googleSuccessPath) {
-      return;
-    }
-
-    const token = currentUrl.searchParams.get('token');
-    const email = currentUrl.searchParams.get('email');
-    const name = currentUrl.searchParams.get('name');
-    if (!token || !email) {
-      this.authErrorMessage = 'Google sign-in failed. Please try again.';
-      window.history.replaceState({}, '', '/');
-      return;
-    }
-
-    const fullName = name || email.split('@')[0];
-    this.completeAuthentication({
-      token,
-      tokenType: 'Bearer',
-      expiresInSeconds: 10800,
-      user: {
-        id: 0,
-        fullName,
-        email,
-        mobileNumber: '',
-        role: 'USER',
-        authProvider: 'GOOGLE'
-      }
-    });
-    window.history.replaceState({}, '', '/');
   }
 
   private passwordStrengthValidator(): ValidatorFn {
@@ -565,14 +577,18 @@ export class App {
   private initializeDefaultCalculatorState(): void {
     this.measurementService.setType(null);
     this.measurementService.setAction(null);
+    this.resetCalculatorInputs();
+    this.calculatorForm.patchValue({ operator: '+' });
+    this.updateIdleMessage(null);
+  }
+
+  private resetCalculatorInputs(): void {
     this.calculatorForm.patchValue({
       leftValue: null,
       leftUnit: '',
       rightValue: null,
-      rightUnit: '',
-      operator: '+'
+      rightUnit: ''
     });
-    this.updateIdleMessage(null);
   }
 
   private triggerAutoConversion(): void {
@@ -618,8 +634,10 @@ export class App {
   }
 
   private updateIdleMessage(action: ActionType | null): void {
-    if (!action) {
-      this.resultMessage = 'Choose type and action to begin';
+    const selectedType = this.measurementService.selectedType;
+
+    if (!action || !selectedType) {
+      this.resultMessage = 'Please select both a type and an action to continue.';
       this.resultValue = null;
       this.resultUnit = '';
       return;
@@ -639,10 +657,9 @@ export class App {
       return;
     }
 
-    const selectedType = this.measurementService.selectedType;
     this.resultMessage = selectedType
       ? `${this.formatLabel(action)} ready for ${this.formatLabel(selectedType)}`
-      : 'Choose type and action to begin';
+      : 'Please select both a type and an action to continue.';
     this.resultValue = null;
     this.resultUnit = '';
   }

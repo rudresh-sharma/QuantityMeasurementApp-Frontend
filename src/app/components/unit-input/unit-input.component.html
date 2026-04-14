@@ -7,7 +7,9 @@
     <input
       *ngIf="!hideValueField"
       type="number"
+      [attr.min]="allowNegativeValues ? null : 0"
       class="unit-input__field"
+      [class.unit-input__field--error]="showNegativeValueError"
       [placeholder]="valuePlaceholder"
       [ngModel]="value"
       (ngModelChange)="emitValue($event)" />
@@ -19,4 +21,7 @@
       <option *ngFor="let unit of units" [value]="unit.shortLabel">{{ unit.label }}</option>
     </select>
   </div>
+  <p *ngIf="showNegativeValueError" class="unit-input__error">
+    Please enter a value greater than or equal to 0.
+  </p>
 </div>

@@ -3,7 +3,7 @@
   border-radius: 36px;
   padding: 24px 28px;
   box-shadow: 0 24px 56px rgba(65, 93, 191, 0.12);
-  width: min(900px, 100%);
+  width: min(800px, 100%);
   margin: 0 auto;
 }
 
@@ -37,8 +37,18 @@
   font-weight: 700;
   transition:
     background 0.18s ease,
+    border-color 0.18s ease,
     color 0.18s ease,
-    box-shadow 0.18s ease;
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.action-tabs__button:not(.action-tabs__button--active):hover {
+  background: #eef4ff;
+  border-color: #9eb7ff;
+  color: #4f6397;
+  box-shadow: 0 8px 18px rgba(89, 115, 203, 0.14);
+  transform: translateY(-1px);
 }
 
 .action-tabs__button--active {
@@ -50,10 +60,12 @@
 
 @media (max-width: 640px) {
   .panel {
+    width: 91%;
     margin: 0;
     border: 0;
     border-radius: 28px;
-    background: #ffffff;
+    // background: #ffffff;
+    // background-color: #4262e6;
     padding: 18px 16px;
   }
 

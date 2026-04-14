@@ -7,7 +7,7 @@
   border-radius: 36px;
   padding: 24px 28px;
   box-shadow: 0 24px 56px rgba(65, 93, 191, 0.12);
-  width: min(900px, 100%);
+  width: min(800px, 100%);
   margin: 0 auto;
 }
 
@@ -46,6 +46,7 @@
 
 @media (max-width: 640px) {
   .panel {
+    width: 91%;
     margin: 0;
     border: 0;
     border-radius: 28px;

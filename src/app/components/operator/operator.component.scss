@@ -28,6 +28,13 @@
   font-size: 0.75rem;
   line-height: 1;
   color: #7a8397;
+  transition: transform 0.18s ease, color 0.18s ease;
+  transform: translateY(2px);
+}
+
+.operator-picker__trigger--open .operator-picker__caret {
+  transform: translateY(-1px) rotate(180deg);
+  color: #4262e6;
 }
 
 .operator-picker__menu {

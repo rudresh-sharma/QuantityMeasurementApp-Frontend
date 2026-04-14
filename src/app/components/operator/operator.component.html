@@ -1,7 +1,12 @@
 <div class="operator-picker">
-  <button type="button" class="operator-picker__trigger" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen">
+  <button
+    type="button"
+    class="operator-picker__trigger"
+    [class.operator-picker__trigger--open]="menuOpen"
+    (click)="toggleMenu()"
+    [attr.aria-expanded]="menuOpen">
     <span class="operator-picker__symbol">{{ selectedOption.symbol }}</span>
-    <span class="operator-picker__caret">▲</span>
+    <span class="operator-picker__caret">&#9660;</span>
   </button>
 
   <div class="operator-picker__menu" *ngIf="menuOpen">

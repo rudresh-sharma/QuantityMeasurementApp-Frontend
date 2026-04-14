@@ -1,8 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ConversionRequest, MeasurementType } from '../models/unit.model';
+import { AuthService } from './auth.service';
 
 interface BackendQuantityDto {
   value: number;
@@ -34,6 +35,7 @@ interface BackendQuantityMeasurementDto {
 @Injectable({ providedIn: 'root' })
 export class ConversionService {
   private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
 
   calculate(request: ConversionRequest): Observable<{ value: number; unit: string; summary: string }> {
     const operation = this.resolveOperation(request);
@@ -43,9 +45,17 @@ export class ConversionService {
     }
 
     const body = this.toBackendRequest(request);
+    const token = this.authService.getAccessToken();
+    const options = token
+      ? {
+          headers: new HttpHeaders({
+            Authorization: `Bearer ${token}`
+          })
+        }
+      : {};
 
     return this.http
-      .post<BackendQuantityMeasurementDto>(`${environment.apiBaseUrl}/api/v1/quantities/${operation}`, body)
+      .post<BackendQuantityMeasurementDto>(`${environment.apiBaseUrl}/api/v1/quantities/${operation}`, body, options)
       .pipe(
         map((response) => ({
           value: response.resultValue,

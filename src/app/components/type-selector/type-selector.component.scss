@@ -3,7 +3,7 @@
   border-radius: 36px;
   padding: 24px 28px;
   box-shadow: 0 24px 56px rgba(65, 93, 191, 0.12);
-  width: min(900px, 100%);
+  width: min(800px, 100%);
   margin: 0 auto;
 }
 
@@ -44,13 +44,16 @@
 }
 
 .type-card:hover {
+  border-color: #4761d8;
+  box-shadow: inset 0 0 0 1px #4761d8;
+  color: #4761d8;
   transform: translateY(-1px);
 }
 
 .type-card--active {
   border-color: #4761d8;
   box-shadow: inset 0 0 0 1px #4761d8;
-  color: #365add;
+  color: #4761d8;
 }
 
 .type-card__icon {
@@ -98,6 +101,7 @@
 
 @media (max-width: 640px) {
   .panel {
+    width: 91%;
     margin: 0;
     border: 0;
     border-radius: 28px;

@@ -12,5 +12,6 @@ COPY --from=build /app/dist/quantity-measurement-app-frontend/browser /usr/share
 COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
 
 ENV API_UPSTREAM=http://host.docker.internal:8080
+ENV OAUTH_UPSTREAM=http://host.docker.internal:8081
 
 EXPOSE 80

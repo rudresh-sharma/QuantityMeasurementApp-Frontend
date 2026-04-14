@@ -15,19 +15,31 @@ export class UnitInputComponent {
   @Input() value: number | null = null;
   @Input() selectedUnit = '';
   @Input() units: Unit[] = [];
+  @Input() allowNegativeValues = false;
   @Input() hideValueField = false;
   @Input() stackValueAndUnit = false;
   @Input() valuePlaceholder = 'Enter value';
   @Input() unitPlaceholder = 'Select unit';
   @Output() valueChange = new EventEmitter<number>();
   @Output() unitChange = new EventEmitter<string>();
+  showNegativeValueError = false;
 
   emitValue(value: string | number): void {
     if (value === '') {
+      this.showNegativeValueError = false;
       this.valueChange.emit(NaN);
       return;
     }
 
-    this.valueChange.emit(Number(value));
+    const numericValue = Number(value);
+
+    if (!this.allowNegativeValues && numericValue < 0) {
+      this.showNegativeValueError = true;
+      this.valueChange.emit(NaN);
+      return;
+    }
+
+    this.showNegativeValueError = false;
+    this.valueChange.emit(numericValue);
   }
 }

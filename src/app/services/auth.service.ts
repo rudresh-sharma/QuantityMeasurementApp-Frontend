@@ -50,20 +50,21 @@ export class AuthService {
   readonly user$ = this.session$.pipe(map((session) => session?.user ?? null));
 
   login(payload: LoginPayload): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${environment.apiBaseUrl}/api/v1/auth/login`, payload)
-      .pipe(tap((response) => this.persistSession(this.toSession(response))));
+    return this.http.post<AuthResponse>(this.buildApiUrl('/api/v1/auth/login'), payload).pipe(
+      tap((response) => this.persistSession(this.toSession(response)))
+    );
   }
 
   register(payload: RegisterPayload): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${environment.apiBaseUrl}/api/v1/auth/register`, payload)
-      .pipe(tap((response) => this.persistSession(this.toSession(response))));
+    return this.http.post<AuthResponse>(this.buildApiUrl('/api/v1/auth/register'), payload).pipe(
+      tap((response) => this.persistSession(this.toSession(response)))
+    );
   }
 
   getGoogleAuthUrl(): string {
-    const oauthBaseUrl = environment.oauthBaseUrl || environment.apiBaseUrl;
-    return `${oauthBaseUrl}${environment.googleAuthPath}`;
+    const authUrl = this.buildBackendUrl(environment.googleAuthPath);
+    authUrl.searchParams.set('redirect_uri', environment.googleRedirectUrl);
+    return authUrl.toString();
   }
 
   completeOAuthLogin(token: string, email: string, name?: string | null): AuthSession {
@@ -138,6 +139,23 @@ export class AuthService {
       localStorage.removeItem(this.storageKey);
       return null;
     }
+  }
+
+  private buildApiUrl(path: string): string {
+    if (!environment.apiBaseUrl) {
+      return path;
+    }
+
+    return new URL(path, this.ensureTrailingSlash(environment.apiBaseUrl)).toString();
+  }
+
+  private buildBackendUrl(path: string): URL {
+    const baseUrl = environment.apiBaseUrl || window.location.origin;
+    return new URL(path, this.ensureTrailingSlash(baseUrl));
+  }
+
+  private ensureTrailingSlash(url: string): string {
+    return url.endsWith('/') ? url : `${url}/`;
   }
 
   private toSession(authResponse: AuthResponse): AuthSession {

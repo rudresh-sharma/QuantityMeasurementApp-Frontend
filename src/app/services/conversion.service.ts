@@ -36,6 +36,7 @@ interface BackendQuantityMeasurementDto {
 export class ConversionService {
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
+  private readonly apiBaseUrl = environment.apiBaseUrl ? new URL(environment.apiBaseUrl.endsWith('/') ? environment.apiBaseUrl : `${environment.apiBaseUrl}/`) : null;
 
   calculate(request: ConversionRequest): Observable<{ value: number; unit: string; summary: string }> {
     const operation = this.resolveOperation(request);
@@ -55,7 +56,7 @@ export class ConversionService {
       : {};
 
     return this.http
-      .post<BackendQuantityMeasurementDto>(`${environment.apiBaseUrl}/api/v1/quantities/${operation}`, body, options)
+      .post<BackendQuantityMeasurementDto>(this.buildApiUrl(`/api/v1/quantities/${operation}`), body, options)
       .pipe(
         map((response) => ({
           value: response.resultValue,
@@ -82,6 +83,10 @@ export class ConversionService {
     };
 
     return operatorMap[request.operator ?? '+'];
+  }
+
+  private buildApiUrl(path: string): string {
+    return this.apiBaseUrl ? new URL(path, this.apiBaseUrl).toString() : path;
   }
 
   private toBackendRequest(request: ConversionRequest): BackendQuantityInputDto {

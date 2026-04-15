@@ -25,13 +25,20 @@ function shouldAttachToken(url: string): boolean {
     return true;
   }
 
-  if (environment.apiBaseUrl && url.startsWith(`${environment.apiBaseUrl}/api`)) {
+  const requestUrl = toAbsoluteUrl(url);
+
+  if (requestUrl.origin === window.location.origin && requestUrl.pathname.startsWith('/api')) {
     return true;
   }
 
-  if (url.startsWith('http://localhost:4200/api')) {
-    return true;
+  if (!environment.apiBaseUrl) {
+    return false;
   }
 
-  return url.startsWith('http://localhost:8080/api');
+  const apiBaseUrl = toAbsoluteUrl(environment.apiBaseUrl);
+  return requestUrl.origin === apiBaseUrl.origin && requestUrl.pathname.startsWith('/api');
+}
+
+function toAbsoluteUrl(url: string): URL {
+  return new URL(url, window.location.origin);
 }

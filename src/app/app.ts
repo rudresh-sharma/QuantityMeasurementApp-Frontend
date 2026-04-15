@@ -130,8 +130,7 @@ export class App {
   }
 
   get isOAuthCallbackRoute(): boolean {
-    const callbackPath = new URL(environment.googleRedirectUrl, environment.frontendUrl).pathname;
-    return window.location.pathname === callbackPath;
+    return window.location.pathname === environment.googleSuccessPath;
   }
 
   constructor() {

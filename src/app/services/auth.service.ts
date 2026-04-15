@@ -62,9 +62,7 @@ export class AuthService {
   }
 
   getGoogleAuthUrl(): string {
-    const authUrl = this.buildBackendUrl(environment.googleAuthPath);
-    authUrl.searchParams.set('redirect_uri', environment.googleRedirectUrl);
-    return authUrl.toString();
+    return environment.googleAuthUrl;
   }
 
   completeOAuthLogin(token: string, email: string, name?: string | null): AuthSession {
@@ -147,11 +145,6 @@ export class AuthService {
     }
 
     return new URL(path, this.ensureTrailingSlash(environment.apiBaseUrl)).toString();
-  }
-
-  private buildBackendUrl(path: string): URL {
-    const baseUrl = environment.apiBaseUrl || window.location.origin;
-    return new URL(path, this.ensureTrailingSlash(baseUrl));
   }
 
   private ensureTrailingSlash(url: string): string {

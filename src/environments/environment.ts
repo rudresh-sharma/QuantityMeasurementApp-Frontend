@@ -2,7 +2,6 @@ export const environment = {
   production: false,
   apiBaseUrl: '',
   frontendUrl: 'http://localhost:4200',
-  googleRedirectUrl: 'http://localhost:4200/oauth-success',
-  googleAuthPath: '/oauth2/authorization/google',
+  googleAuthUrl: 'https://api-gateway-slc7.onrender.com/oauth2/authorization/google',
   googleSuccessPath: '/oauth-success'
 };

@@ -22,6 +22,10 @@
   text-align: center;
 }
 
+.oauth-success__card--error {
+  box-shadow: 0 24px 56px rgba(191, 78, 65, 0.14);
+}
+
 .oauth-success__card h1 {
   margin: 0 0 12px;
   font-size: 1.5rem;
@@ -41,6 +45,19 @@
   border-top-color: #4863d8;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+}
+
+.oauth-success__icon {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(191, 78, 65, 0.12);
+  color: #bf4e41;
+  font-size: 1.4rem;
+  font-weight: 700;
 }
 
 @keyframes spin {

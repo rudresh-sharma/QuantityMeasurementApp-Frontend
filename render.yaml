@@ -1,0 +1,9 @@
+services:
+  - type: static_site
+    name: quantitymeasurementapp-frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist/quantity-measurement-app-frontend/browser
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

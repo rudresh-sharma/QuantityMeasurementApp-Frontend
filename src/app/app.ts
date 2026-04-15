@@ -1,5 +1,5 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, HostListener, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
 import { combineLatest } from 'rxjs';
@@ -41,6 +41,7 @@ export class App {
   private readonly measurementService = inject(MeasurementService);
   private readonly conversionService = inject(ConversionService);
   private readonly historyService = inject(HistoryService);
+  @ViewChild('resultSection', { read: ElementRef }) private resultSection?: ElementRef<HTMLElement>;
 
   readonly loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -115,6 +116,8 @@ export class App {
   loginErrorMessage = '';
   historyOpen = false;
   profileMenuOpen = false;
+  showResultJumpButton = false;
+  private hasFreshResult = false;
 
   get currentUserInitials(): string {
     const parts = this.currentUserName
@@ -328,6 +331,8 @@ export class App {
           this.resultValue = result.value;
           this.resultUnit = result.unit;
           this.resultMessage = result.summary;
+          this.hasFreshResult = true;
+          this.queueResultJumpButtonUpdate();
           this.historyService.add({
             type: selectedType,
             action: selectedAction,
@@ -340,6 +345,8 @@ export class App {
           this.resultValue = null;
           this.resultUnit = '';
           this.resultMessage = error.message || 'Calculation failed';
+          this.hasFreshResult = true;
+          this.queueResultJumpButtonUpdate();
         }
       });
   }
@@ -450,6 +457,11 @@ export class App {
     this.historyService.clear();
   }
 
+  scrollToResult(): void {
+    this.resultSection?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    this.showResultJumpButton = false;
+  }
+
   toggleProfileMenu(): void {
     this.profileMenuOpen = !this.profileMenuOpen;
   }
@@ -464,6 +476,12 @@ export class App {
     if (!target?.closest('.profile-menu')) {
       this.profileMenuOpen = false;
     }
+  }
+
+  @HostListener('window:scroll')
+  @HostListener('window:resize')
+  handleViewportChange(): void {
+    this.updateResultJumpButtonVisibility();
   }
 
   private completeAuthentication(response: AuthResponse): void {
@@ -634,6 +652,8 @@ export class App {
   }
 
   private updateIdleMessage(action: ActionType | null): void {
+    this.hasFreshResult = false;
+    this.showResultJumpButton = false;
     const selectedType = this.measurementService.selectedType;
 
     if (!action || !selectedType) {
@@ -662,6 +682,20 @@ export class App {
       : 'Please select both a type and an action to continue.';
     this.resultValue = null;
     this.resultUnit = '';
+  }
+
+  private queueResultJumpButtonUpdate(): void {
+    setTimeout(() => this.updateResultJumpButtonVisibility());
+  }
+
+  private updateResultJumpButtonVisibility(): void {
+    if (!this.hasFreshResult || !this.resultSection) {
+      this.showResultJumpButton = false;
+      return;
+    }
+
+    const rect = this.resultSection.nativeElement.getBoundingClientRect();
+    this.showResultJumpButton = rect.top > window.innerHeight - 120;
   }
 
   private triggerAutoArithmetic(): void {

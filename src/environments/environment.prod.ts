@@ -1,8 +1,8 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'http://15.207.1.116:8080',
-  frontendUrl: 'https://quantitymeasurement.vercel.app',
-  googleRedirectUrl: 'https://quantitymeasurement.vercel.app/oauth-success',
+  apiBaseUrl: 'https://api-gateway-slc7.onrender.com',
+  frontendUrl: 'https://quantitymeasurementapp-frontend-ysu8.onrender.com',
+  googleRedirectUrl: 'https://quantitymeasurementapp-frontend-ysu8.onrender.com/oauth-success',
   googleAuthPath: '/oauth2/authorization/google',
   googleSuccessPath: '/oauth-success'
 };

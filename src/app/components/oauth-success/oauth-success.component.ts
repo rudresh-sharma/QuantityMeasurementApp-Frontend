@@ -18,6 +18,7 @@ export class OAuthSuccessComponent implements OnInit {
   heading = 'Signing you in';
   statusMessage = 'Completing sign-in...';
   isError = false;
+  actionLabel = 'Back to sign in';
 
   ngOnInit(): void {
     const error = this.route.snapshot.queryParamMap.get('error');
@@ -30,16 +31,14 @@ export class OAuthSuccessComponent implements OnInit {
       this.isError = true;
       this.heading = 'Google sign-in failed';
       this.statusMessage = this.friendlyErrorMessage(error);
-      this.redirectHome(3000);
       return;
     }
 
-    if (!token || !email) {
+    if (!token) {
       this.authService.clearSession();
       this.isError = true;
       this.heading = 'Google sign-in failed';
-      this.statusMessage = 'We could not complete Google sign-in. Please try again.';
-      this.redirectHome(3000);
+      this.statusMessage = 'We could not find a sign-in token in the callback URL. Please try Google sign-in again.';
       return;
     }
 
@@ -48,9 +47,13 @@ export class OAuthSuccessComponent implements OnInit {
     this.redirectHome();
   }
 
+  goToHome(): void {
+    void this.router.navigate(['/'], { replaceUrl: true });
+  }
+
   private redirectHome(delayMs = 800): void {
     window.setTimeout(() => {
-      void this.router.navigate(['/'], { replaceUrl: true });
+      this.goToHome();
     }, delayMs);
   }
 
@@ -65,6 +68,6 @@ export class OAuthSuccessComponent implements OnInit {
       return 'Google sign-in was canceled before it could finish.';
     }
 
-    return `Google sign-in could not be completed: ${normalizedError}. Redirecting...`;
+    return `Google sign-in could not be completed: ${normalizedError}. Please try again.`;
   }
 }

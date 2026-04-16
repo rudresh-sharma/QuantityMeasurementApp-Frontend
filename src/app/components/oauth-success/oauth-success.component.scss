@@ -37,6 +37,30 @@
   color: #5d677d;
 }
 
+.oauth-success__action {
+  margin-top: 20px;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #4863d8;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  box-shadow: 0 12px 24px rgba(72, 99, 216, 0.2);
+}
+
+.oauth-success__action:hover {
+  background: #3f58c4;
+  transform: translateY(-1px);
+}
+
+.oauth-success__action:focus-visible {
+  outline: 3px solid rgba(72, 99, 216, 0.22);
+  outline-offset: 3px;
+}
+
 .oauth-success__spinner {
   width: 44px;
   height: 44px;

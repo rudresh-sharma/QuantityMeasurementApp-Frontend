@@ -4,5 +4,8 @@
     <div *ngIf="isError" class="oauth-success__icon" aria-hidden="true">!</div>
     <h1>{{ heading }}</h1>
     <p>{{ statusMessage }}</p>
+    <button *ngIf="isError" type="button" class="oauth-success__action" (click)="goToHome()">
+      {{ actionLabel }}
+    </button>
   </div>
 </section>

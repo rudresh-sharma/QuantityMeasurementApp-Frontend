@@ -65,8 +65,9 @@ export class AuthService {
     return environment.googleAuthUrl;
   }
 
-  completeOAuthLogin(token: string, email: string, name?: string | null): AuthSession {
-    const fullName = String(name ?? '').trim() || email.split('@')[0] || 'User';
+  completeOAuthLogin(token: string, email?: string | null, name?: string | null): AuthSession {
+    const normalizedEmail = String(email ?? '').trim();
+    const fullName = String(name ?? '').trim() || normalizedEmail.split('@')[0] || 'User';
     const session: AuthSession = {
       token,
       tokenType: 'Bearer',
@@ -74,7 +75,7 @@ export class AuthService {
       user: {
         id: 0,
         fullName,
-        email,
+        email: normalizedEmail,
         mobileNumber: null,
         role: 'USER',
         authProvider: 'GOOGLE'

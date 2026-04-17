@@ -512,14 +512,14 @@ export class App {
     this.loginForm.setErrors(null);
   }
 
-  private completeSignup(response: Partial<AuthResponse> | null | undefined, email: string, password: string): void {
+  private completeSignup(response: unknown, email: string, password: string): void {
     const user = this.extractSignupUser(response);
 
-    if (response?.token && user) {
+    if (this.hasToken(response) && user) {
       this.completeAuthentication({
         token: response.token,
-        tokenType: response.tokenType || 'Bearer',
-        expiresInSeconds: response.expiresInSeconds ?? 0,
+        tokenType: typeof response.tokenType === 'string' ? response.tokenType : 'Bearer',
+        expiresInSeconds: typeof response.expiresInSeconds === 'number' ? response.expiresInSeconds : 0,
         user
       });
       return;
@@ -828,7 +828,16 @@ export class App {
       .join(' ');
   }
 
-  private extractSignupUser(response: Partial<AuthResponse> | null | undefined): UserProfile | null {
-    return response?.user ?? null;
+  private extractSignupUser(response: unknown): UserProfile | null {
+    if (!response || typeof response !== 'object' || !('user' in response)) {
+      return null;
+    }
+
+    const user = (response as { user?: unknown }).user;
+    return user && typeof user === 'object' ? (user as UserProfile) : null;
+  }
+
+  private hasToken(response: unknown): response is Partial<AuthResponse> & { token: string } {
+    return !!response && typeof response === 'object' && 'token' in response && typeof response.token === 'string' && !!response.token;
   }
 }

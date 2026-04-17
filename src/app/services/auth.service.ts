@@ -20,7 +20,7 @@ export interface AuthResponse {
   user: UserProfile;
 }
 
-type AuthResponseLike = Partial<AuthResponse> | null | undefined;
+type AuthResponseLike = unknown;
 
 export interface LoginPayload {
   email: string;
@@ -53,7 +53,11 @@ export class AuthService {
 
   login(payload: LoginPayload): Observable<AuthResponse> {
     return this.http.post<AuthResponseLike>(this.buildApiUrl('/api/v1/auth/login'), payload).pipe(
-      map((response) => this.requireAuthResponse(response, 'Login failed. The server did not return a valid session.')),
+      map((response) =>
+        this.requireAuthResponse(response, 'Login failed. The server did not return a valid session.', {
+          email: payload.email
+        })
+      ),
       tap((response) => this.persistSession(this.toSession(response)))
     );
   }
@@ -170,29 +174,102 @@ export class AuthService {
   }
 
   private tryCreateSession(authResponse: AuthResponseLike): AuthSession | null {
-    if (!authResponse?.token || !authResponse.user) {
-      return null;
-    }
-
-    return this.toSession({
-      token: authResponse.token,
-      tokenType: authResponse.tokenType || 'Bearer',
-      expiresInSeconds: authResponse.expiresInSeconds ?? 0,
-      user: authResponse.user
-    });
+    const normalized = this.normalizeAuthResponse(authResponse);
+    return normalized ? this.toSession(normalized) : null;
   }
 
-  private requireAuthResponse(authResponse: AuthResponseLike, fallbackMessage: string): AuthResponse {
-    if (!authResponse?.token || !authResponse.user) {
+  private requireAuthResponse(
+    authResponse: AuthResponseLike,
+    fallbackMessage: string,
+    fallbackUser?: Partial<UserProfile>
+  ): AuthResponse {
+    const normalized = this.normalizeAuthResponse(authResponse, fallbackUser);
+
+    if (!normalized) {
       throw new Error(fallbackMessage);
     }
 
+    return normalized;
+  }
+
+  private normalizeAuthResponse(
+    authResponse: AuthResponseLike,
+    fallbackUser?: Partial<UserProfile>
+  ): AuthResponse | null {
+    if (!authResponse || typeof authResponse !== 'object') {
+      return null;
+    }
+
+    const root = authResponse as Record<string, unknown>;
+    const data = this.asRecord(root['data']) ?? this.asRecord(root['result']) ?? root;
+    const token = this.readString(data, ['token', 'accessToken', 'jwt', 'idToken']);
+
+    if (!token) {
+      return null;
+    }
+
+    const userSource =
+      this.asRecord(data['user']) ??
+      this.asRecord(data['userDto']) ??
+      this.asRecord(data['profile']) ??
+      this.asRecord(data['account']) ??
+      data;
+
     return {
-      token: authResponse.token,
-      tokenType: authResponse.tokenType || 'Bearer',
-      expiresInSeconds: authResponse.expiresInSeconds ?? 0,
-      user: authResponse.user
+      token,
+      tokenType: this.readString(data, ['tokenType', 'type']) || 'Bearer',
+      expiresInSeconds: this.readNumber(data, ['expiresInSeconds', 'expiresIn', 'expires_in']) ?? 0,
+      user: this.normalizeUserProfile(userSource, fallbackUser)
     };
+  }
+
+  private normalizeUserProfile(source: Record<string, unknown>, fallbackUser?: Partial<UserProfile>): UserProfile {
+    const email = this.readString(source, ['email', 'emailId']) || fallbackUser?.email || '';
+    const fullName =
+      this.readString(source, ['fullName', 'name', 'username']) ||
+      fallbackUser?.fullName ||
+      email.split('@')[0] ||
+      'User';
+
+    return {
+      id: this.readNumber(source, ['id', 'userId']) ?? fallbackUser?.id ?? 0,
+      fullName,
+      email,
+      mobileNumber: this.readString(source, ['mobileNumber', 'phoneNumber', 'phone']) || fallbackUser?.mobileNumber || null,
+      role: this.readString(source, ['role', 'userRole']) || fallbackUser?.role || 'USER',
+      authProvider: this.readString(source, ['authProvider', 'provider']) || fallbackUser?.authProvider || 'LOCAL',
+      pictureUrl: this.readString(source, ['pictureUrl', 'avatarUrl', 'imageUrl']) || fallbackUser?.pictureUrl || null
+    };
+  }
+
+  private readString(source: Record<string, unknown>, keys: string[]): string | null {
+    for (const key of keys) {
+      const value = source[key];
+      if (typeof value === 'string' && value.trim()) {
+        return value.trim();
+      }
+    }
+
+    return null;
+  }
+
+  private readNumber(source: Record<string, unknown>, keys: string[]): number | null {
+    for (const key of keys) {
+      const value = source[key];
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+      }
+
+      if (typeof value === 'string' && value.trim() && !Number.isNaN(Number(value))) {
+        return Number(value);
+      }
+    }
+
+    return null;
+  }
+
+  private asRecord(value: unknown): Record<string, unknown> | null {
+    return value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
   }
 
   private resolveExpiresAt(token: string, fallbackExpiresAt: string | null): string | null {

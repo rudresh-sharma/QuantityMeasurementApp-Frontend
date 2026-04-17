@@ -1,9 +1,11 @@
 services:
-  - type: static_site
+  - type: web
+    runtime: docker
     name: quantitymeasurementapp-frontend
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist/quantity-measurement-app-frontend/browser
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: API_UPSTREAM
+        value: https://api-gateway-slc7.onrender.com
+      - key: OAUTH_UPSTREAM
+        value: https://authentication-service-wjg4.onrender.com

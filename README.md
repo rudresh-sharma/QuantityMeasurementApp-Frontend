@@ -16,7 +16,7 @@ Angular frontend for the Quantity Measurement microservices.
 2. Install dependencies with `npm install`.
 3. Run the frontend with `npm start`.
 
-The Angular dev server uses [`proxy.conf.json`](/c:/Users/ASUS/OneDrive/Desktop/QuantityMeasurementApp-Frontend/proxy.conf.json) so frontend calls to `/api` and `/oauth2` are forwarded to `http://localhost:8080`.
+The Angular dev server uses [`proxy.conf.json`](/c:/Users/ASUS/OneDrive/Desktop/QuantityMeasurementApp-Frontend/proxy.conf.json) so frontend calls to `/api` and `/oauth2` stay same-origin and are forwarded to the backend services.
 
 ## Production build
 
@@ -40,7 +40,18 @@ Run the container:
 docker run -p 4200:80 -e API_UPSTREAM=http://host.docker.internal:8080 quantity-measurement-frontend
 ```
 
-`API_UPSTREAM` should point to the backend gateway or reverse proxy that exposes `/api` and `/oauth2`.
+`API_UPSTREAM` should point to the backend gateway or reverse proxy that exposes `/api`.
+`OAUTH_UPSTREAM` should point to the authentication service that exposes `/oauth2`.
+
+## Render deployment
+
+`render.yaml` is configured to deploy this app as a Docker-based web service so nginx can:
+
+- serve the Angular SPA
+- proxy `/api/*` to `API_UPSTREAM`
+- proxy `/oauth2/*` to `OAUTH_UPSTREAM`
+
+This avoids browser-side cross-origin calls in production and keeps the production request flow aligned with local Docker usage.
 
 ## Docker Compose
 

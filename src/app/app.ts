@@ -118,6 +118,7 @@ export class App {
   profileMenuOpen = false;
   showResultJumpButton = false;
   private hasFreshResult = false;
+  private calculationRequestId = 0;
 
   get currentUserInitials(): string {
     const parts = this.currentUserName
@@ -315,6 +316,13 @@ export class App {
     const value = this.calculatorForm.getRawValue();
     const leftValue = Number(value.leftValue);
     const rightValue = Number(value.rightValue);
+    const requestId = ++this.calculationRequestId;
+
+    this.hasFreshResult = false;
+    this.showResultJumpButton = false;
+    this.resultValue = null;
+    this.resultUnit = '';
+    this.resultMessage = this.calculatingMessage(selectedAction, selectedType);
 
     this.conversionService
       .calculate({
@@ -328,6 +336,10 @@ export class App {
       })
       .subscribe({
         next: (result) => {
+          if (requestId !== this.calculationRequestId) {
+            return;
+          }
+
           this.resultValue = result.value;
           this.resultUnit = result.unit;
           this.resultMessage = result.summary;
@@ -342,6 +354,10 @@ export class App {
           });
         },
         error: (error: Error) => {
+          if (requestId !== this.calculationRequestId) {
+            return;
+          }
+
           this.resultValue = null;
           this.resultUnit = '';
           this.resultMessage = error.message || 'Calculation failed';
@@ -654,6 +670,7 @@ export class App {
   private updateIdleMessage(action: ActionType | null): void {
     this.hasFreshResult = false;
     this.showResultJumpButton = false;
+    this.calculationRequestId++;
     const selectedType = this.measurementService.selectedType;
 
     if (!action || !selectedType) {
@@ -664,24 +681,36 @@ export class App {
     }
 
     if (action === 'conversion') {
-      this.resultMessage = 'Select units and enter values to begin';
+      this.resultMessage = 'Complete the value and both units to calculate the conversion.';
       this.resultValue = null;
       this.resultUnit = '';
       return;
     }
 
     if (action === 'arithmetic') {
-      this.resultMessage = 'Select units and enter values to begin';
+      this.resultMessage = 'Complete both values, both units, and the operator to calculate.';
       this.resultValue = null;
       this.resultUnit = '';
       return;
     }
 
-    this.resultMessage = selectedType
-      ? `${this.formatLabel(action)} ready for ${this.formatLabel(selectedType)}`
-      : 'Please select both a type and an action to continue.';
+    this.resultMessage = `Complete both values and units to compare ${this.formatLabel(selectedType)}.`;
     this.resultValue = null;
     this.resultUnit = '';
+  }
+
+  private calculatingMessage(action: ActionType, selectedType: MeasurementType): string {
+    const typeLabel = this.formatLabel(selectedType);
+
+    if (action === 'conversion') {
+      return `Calculating ${typeLabel} conversion...`;
+    }
+
+    if (action === 'comparison') {
+      return `Calculating ${typeLabel} comparison...`;
+    }
+
+    return `Calculating ${typeLabel} result...`;
   }
 
   private queueResultJumpButtonUpdate(): void {

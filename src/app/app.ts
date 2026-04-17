@@ -198,17 +198,19 @@ export class App {
     this.commitActiveField();
 
     if (this.signupForm.valid) {
+      const signupPayload = {
+        fullName: this.signupForm.getRawValue().fullName || '',
+        email: this.signupForm.getRawValue().email || '',
+        password: this.signupForm.getRawValue().password || '',
+        mobileNumber: this.signupForm.getRawValue().mobileNumber || ''
+      };
+
       this.authErrorMessage = '';
       this.signupErrorMessage = '';
       this.authService
-        .register({
-          fullName: this.signupForm.getRawValue().fullName || '',
-          email: this.signupForm.getRawValue().email || '',
-          password: this.signupForm.getRawValue().password || '',
-          mobileNumber: this.signupForm.getRawValue().mobileNumber || ''
-        })
+        .register(signupPayload)
         .subscribe({
-          next: (response) => this.completeSignup(response),
+          next: (response) => this.completeSignup(response, signupPayload.email, signupPayload.password),
           error: (error: Error) => {
             const message = this.formatAuthError(error.message);
             this.authErrorMessage = message;
@@ -510,7 +512,7 @@ export class App {
     this.loginForm.setErrors(null);
   }
 
-  private completeSignup(response: Partial<AuthResponse> | null | undefined): void {
+  private completeSignup(response: Partial<AuthResponse> | null | undefined, email: string, password: string): void {
     const user = this.extractSignupUser(response);
 
     if (response?.token && user) {
@@ -523,19 +525,30 @@ export class App {
       return;
     }
 
-    this.measurementService.setAuthTab('login');
-    this.authErrorMessage = '';
-    this.signupErrorMessage = '';
-    this.loginErrorMessage = 'Account created successfully. Please log in.';
-    this.signupForm.reset({
-      fullName: '',
-      email: '',
-      password: '',
-      mobileNumber: ''
-    });
-    this.signupForm.setErrors(null);
-    this.loginForm.setErrors(null);
-    this.cdr.detectChanges();
+    this.authService
+      .login({ email, password })
+      .subscribe({
+        next: (loginResponse) => this.completeAuthentication(loginResponse),
+        error: () => {
+          this.measurementService.setAuthTab('login');
+          this.authErrorMessage = '';
+          this.signupErrorMessage = '';
+          this.loginErrorMessage = 'Account created successfully. Please log in.';
+          this.signupForm.reset({
+            fullName: '',
+            email: '',
+            password: '',
+            mobileNumber: ''
+          });
+          this.loginForm.patchValue({
+            email,
+            password: ''
+          });
+          this.signupForm.setErrors(null);
+          this.loginForm.setErrors(null);
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   private passwordStrengthValidator(): ValidatorFn {

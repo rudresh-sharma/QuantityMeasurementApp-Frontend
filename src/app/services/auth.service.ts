@@ -52,7 +52,8 @@ export class AuthService {
   readonly user$ = this.session$.pipe(map((session) => session?.user ?? null));
 
   login(payload: LoginPayload): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(this.buildApiUrl('/api/v1/auth/login'), payload).pipe(
+    return this.http.post<AuthResponseLike>(this.buildApiUrl('/api/v1/auth/login'), payload).pipe(
+      map((response) => this.requireAuthResponse(response, 'Login failed. The server did not return a valid session.')),
       tap((response) => this.persistSession(this.toSession(response)))
     );
   }
@@ -179,6 +180,19 @@ export class AuthService {
       expiresInSeconds: authResponse.expiresInSeconds ?? 0,
       user: authResponse.user
     });
+  }
+
+  private requireAuthResponse(authResponse: AuthResponseLike, fallbackMessage: string): AuthResponse {
+    if (!authResponse?.token || !authResponse.user) {
+      throw new Error(fallbackMessage);
+    }
+
+    return {
+      token: authResponse.token,
+      tokenType: authResponse.tokenType || 'Bearer',
+      expiresInSeconds: authResponse.expiresInSeconds ?? 0,
+      user: authResponse.user
+    };
   }
 
   private resolveExpiresAt(token: string, fallbackExpiresAt: string | null): string | null {

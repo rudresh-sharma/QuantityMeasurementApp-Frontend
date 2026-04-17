@@ -20,6 +20,8 @@ export interface AuthResponse {
   user: UserProfile;
 }
 
+type AuthResponseLike = Partial<AuthResponse> | null | undefined;
+
 export interface LoginPayload {
   email: string;
   password: string;
@@ -55,9 +57,14 @@ export class AuthService {
     );
   }
 
-  register(payload: RegisterPayload): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(this.buildApiUrl('/api/v1/auth/register'), payload).pipe(
-      tap((response) => this.persistSession(this.toSession(response)))
+  register(payload: RegisterPayload): Observable<AuthResponseLike> {
+    return this.http.post<AuthResponseLike>(this.buildApiUrl('/api/v1/auth/register'), payload).pipe(
+      tap((response) => {
+        const session = this.tryCreateSession(response);
+        if (session) {
+          this.persistSession(session);
+        }
+      })
     );
   }
 
@@ -159,6 +166,19 @@ export class AuthService {
       expiresAt: this.resolveExpiresAt(authResponse.token, this.expiresAtFromSeconds(authResponse.expiresInSeconds)),
       user: authResponse.user
     };
+  }
+
+  private tryCreateSession(authResponse: AuthResponseLike): AuthSession | null {
+    if (!authResponse?.token || !authResponse.user) {
+      return null;
+    }
+
+    return this.toSession({
+      token: authResponse.token,
+      tokenType: authResponse.tokenType || 'Bearer',
+      expiresInSeconds: authResponse.expiresInSeconds ?? 0,
+      user: authResponse.user
+    });
   }
 
   private resolveExpiresAt(token: string, fallbackExpiresAt: string | null): string | null {

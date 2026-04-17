@@ -10,7 +10,7 @@ import { ResultComponent } from './components/result/result.component';
 import { TypeSelectorComponent } from './components/type-selector/type-selector.component';
 import { UnitInputComponent } from './components/unit-input/unit-input.component';
 import { ActionType, MeasurementType, Unit } from './models/unit.model';
-import { AuthResponse, AuthService } from './services/auth.service';
+import { AuthResponse, AuthService, UserProfile } from './services/auth.service';
 import { ConversionService } from './services/conversion.service';
 import { HistoryService } from './services/history.service';
 import { MeasurementService } from './services/measurement.service';
@@ -208,7 +208,7 @@ export class App {
           mobileNumber: this.signupForm.getRawValue().mobileNumber || ''
         })
         .subscribe({
-          next: (response) => this.completeAuthentication(response),
+          next: (response) => this.completeSignup(response),
           error: (error: Error) => {
             const message = this.formatAuthError(error.message);
             this.authErrorMessage = message;
@@ -510,6 +510,34 @@ export class App {
     this.loginForm.setErrors(null);
   }
 
+  private completeSignup(response: Partial<AuthResponse> | null | undefined): void {
+    const user = this.extractSignupUser(response);
+
+    if (response?.token && user) {
+      this.completeAuthentication({
+        token: response.token,
+        tokenType: response.tokenType || 'Bearer',
+        expiresInSeconds: response.expiresInSeconds ?? 0,
+        user
+      });
+      return;
+    }
+
+    this.measurementService.setAuthTab('login');
+    this.authErrorMessage = '';
+    this.signupErrorMessage = '';
+    this.loginErrorMessage = 'Account created successfully. Please log in.';
+    this.signupForm.reset({
+      fullName: '',
+      email: '',
+      password: '',
+      mobileNumber: ''
+    });
+    this.signupForm.setErrors(null);
+    this.loginForm.setErrors(null);
+    this.cdr.detectChanges();
+  }
+
   private passwordStrengthValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       const value = String(control.value ?? '');
@@ -785,5 +813,9 @@ export class App {
       .filter(Boolean)
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
       .join(' ');
+  }
+
+  private extractSignupUser(response: Partial<AuthResponse> | null | undefined): UserProfile | null {
+    return response?.user ?? null;
   }
 }

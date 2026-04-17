@@ -22,9 +22,9 @@ export class OAuthSuccessComponent implements OnInit {
 
   ngOnInit(): void {
     const error = this.route.snapshot.queryParamMap.get('error');
-    const token = this.route.snapshot.queryParamMap.get('token');
-    const email = this.route.snapshot.queryParamMap.get('email');
-    const name = this.route.snapshot.queryParamMap.get('name');
+    const token = this.resolveToken();
+    const email = this.resolveParam('email');
+    const name = this.resolveParam('name');
 
     if (error) {
       this.authService.clearSession();
@@ -55,6 +55,36 @@ export class OAuthSuccessComponent implements OnInit {
     window.setTimeout(() => {
       this.goToHome();
     }, delayMs);
+  }
+
+  private resolveToken(): string | null {
+    return this.resolveParam('token', 'accessToken', 'idToken', 'jwt', 'authToken');
+  }
+
+  private resolveParam(...keys: string[]): string | null {
+    for (const key of keys) {
+      const queryValue = this.route.snapshot.queryParamMap.get(key);
+      if (queryValue) {
+        return queryValue;
+      }
+
+      const hashValue = this.readHashParam(key);
+      if (hashValue) {
+        return hashValue;
+      }
+    }
+
+    return null;
+  }
+
+  private readHashParam(key: string): string | null {
+    const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
+    if (!hash) {
+      return null;
+    }
+
+    const hashParams = new URLSearchParams(hash);
+    return hashParams.get(key);
   }
 
   private friendlyErrorMessage(error: string): string {

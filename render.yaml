@@ -8,4 +8,4 @@ services:
       - key: API_UPSTREAM
         value: https://api-gateway-slc7.onrender.com
       - key: OAUTH_UPSTREAM
-        value: https://authentication-service-wjg4.onrender.com
+        value: https://quantitymeasurementapp-1-ev12.onrender.com

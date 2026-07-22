@@ -74,7 +74,14 @@ export class AuthService {
   }
 
   getGoogleAuthUrl(): string {
-    return environment.googleAuthUrl;
+    const frontendUrl = this.currentFrontendUrl();
+    const authUrl = new URL(environment.googleAuthUrl, frontendUrl);
+
+    if (!authUrl.searchParams.has('redirect_uri')) {
+      authUrl.searchParams.set('redirect_uri', new URL(environment.googleSuccessPath, frontendUrl).toString());
+    }
+
+    return authUrl.toString();
   }
 
   completeOAuthLogin(token: string, email?: string | null, name?: string | null): AuthSession {
@@ -162,6 +169,14 @@ export class AuthService {
 
   private ensureTrailingSlash(url: string): string {
     return url.endsWith('/') ? url : `${url}/`;
+  }
+
+  private currentFrontendUrl(): string {
+    if (typeof window !== 'undefined' && window.location?.origin) {
+      return window.location.origin;
+    }
+
+    return environment.frontendUrl;
   }
 
   private toSession(authResponse: AuthResponse): AuthSession {
@@ -314,3 +329,4 @@ export class AuthService {
     }
   }
 }
+
